@@ -1,4 +1,4 @@
-# Fargate Cron - ECR module
+# terraform-aws-ecr
 
 Creates/configures an ECR repo.
 
