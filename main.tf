@@ -125,6 +125,7 @@ data "aws_iam_policy_document" "resource" {
 
 resource "aws_ecr_repository" "default" {
   name = var.name
+  tags = var.tags
 }
 
 resource "aws_ecr_repository_policy" "default" {
@@ -143,24 +144,28 @@ resource "aws_iam_policy" "login" {
   name        = "${var.name}-login"
   description = "Allow IAM Users to call ecr:GetAuthorizationToken"
   policy      = data.aws_iam_policy_document.login.json
+  tags        = var.tags
 }
 
 resource "aws_iam_policy" "read" {
   name        = "${var.name}-read"
   description = "Allow IAM Users to pull from ECR"
   policy      = data.aws_iam_policy_document.read.json
+  tags        = var.tags
 }
 
 resource "aws_iam_policy" "write" {
   name        = "${var.name}-write"
   description = "Allow IAM Users to push into ECR"
   policy      = data.aws_iam_policy_document.write.json
+  tags        = var.tags
 }
 
 resource "aws_iam_role" "default" {
   count              = signum(length(var.roles)) == 1 ? 0 : 1
   name               = var.name
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  tags               = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "default_ecr" {
