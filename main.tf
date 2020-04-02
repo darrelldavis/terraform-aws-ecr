@@ -1,5 +1,5 @@
 data "aws_iam_role" "default" {
-  count = signum(length(var.roles)) == 1 ? length(var.roles) : 0
+  count = length(var.roles) > 0 ? length(var.roles) : 0
   name  = element(var.roles, count.index)
 }
 
@@ -62,7 +62,7 @@ data "aws_iam_policy_document" "read" {
 }
 
 data "aws_iam_policy_document" "default_ecr" {
-  count = signum(length(var.roles)) == 1 ? 0 : 1
+  count = length(var.roles) > 0 ? 0 : 1
 
   statement {
     sid    = "ecr"
@@ -93,7 +93,7 @@ data "aws_iam_policy_document" "default_ecr" {
 }
 
 data "aws_iam_policy_document" "resource" {
-  count = signum(length(var.roles))
+  count = length(var.roles) > 0 ? 1 : 0
 
   statement {
     sid    = "ecr"
@@ -129,13 +129,15 @@ resource "aws_ecr_repository" "default" {
 }
 
 resource "aws_ecr_repository_policy" "default" {
-  count      = signum(length(var.roles))
+  count = length(var.roles) > 0 ? 1 : 0
+
   repository = aws_ecr_repository.default.name
   policy     = data.aws_iam_policy_document.resource[count.index]
 }
 
 resource "aws_ecr_repository_policy" "default_ecr" {
-  count      = signum(length(var.roles)) == 1 ? 0 : 1
+  count      = length(var.roles) > 0 ? 0 : 1
+
   repository = aws_ecr_repository.default.name
   policy     = data.aws_iam_policy_document.default_ecr[count.index].json
 }
@@ -159,26 +161,29 @@ resource "aws_iam_policy" "write" {
 }
 
 resource "aws_iam_role" "default" {
-  count              = signum(length(var.roles)) == 1 ? 0 : 1
+  count      = length(var.roles) > 0 ? 0 : 1
   name               = var.name
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
   tags               = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "default_ecr" {
-  count      = signum(length(var.roles)) == 1 ? 0 : 1
+  count      = length(var.roles) > 0 ? 0 : 1
+
   role       = aws_iam_role.default[count.index].name
   policy_arn = aws_iam_policy.login.arn
 }
 
 resource "aws_iam_role_policy_attachment" "default" {
-  count      = signum(length(var.roles)) == 1 ? length(var.roles) : 0
+  count = length(var.roles) > 0 ? length(var.roles) : 0
+
   role       = element(var.roles, count.index)
   policy_arn = aws_iam_policy.login.arn
 }
 
 resource "aws_iam_instance_profile" "default" {
-  count = signum(length(var.roles)) == 1 ? 0 : 1
+  count = length(var.roles) > 0 ? 0 : 1
+
   name  = "${var.name}-${count.index}"
   role  = aws_iam_role.default[count.index].name
 }
